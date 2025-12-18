@@ -4,7 +4,7 @@ using UnityEngine;
 [RequireComponent(typeof(Animator))]
 public class BotNav : MonoBehaviour
 {
-    [Header("Target")]
+    [Header("Target & Spawn")]
     public Transform finishPoint;
     public Transform spawnPoint;
 
@@ -15,61 +15,43 @@ public class BotNav : MonoBehaviour
     public float groundCheckDistance = 1.5f;
     public float sideOffset = 0.7f;
 
-    enum BotState
-{
-    Running,
-    Finished,
-    Dead
-}
-
-
     [Header("Slow")]
     public float slowMultiplier = 0.5f;
 
-    CharacterController controller;
-    Animator animator;
-    Vector3 velocity;
+    private CharacterController controller;
+    private Animator animator;
+    private Vector3 velocity;
+    private float currentSpeed;
+    private float randomTimer;
+    private float horizontalMove;
+    private bool isInSlowZone;
 
-    float randomTimer;
-    float horizontalMove;
-    float currentSpeed;
-    bool isInSlowZone;
+    private enum BotState { Running, Finished, Dead }
+    private BotState state = BotState.Running;
 
-    BotState state = BotState.Running;
-
-    int finishLayer;
-    int slowLayer;
-    int deathLayer;
+    private enum Checkpoint
+    {
+        START, BOTQOQ1, TUNEL1, TUNEL2, BOTQOQ2, BARRIER
+    }
+    private Checkpoint currentCheckpoint = Checkpoint.START;
 
     void Awake()
     {
         controller = GetComponent<CharacterController>();
         animator = GetComponent<Animator>();
-
-        finishLayer = LayerMask.NameToLayer("Finish");
-        slowLayer   = LayerMask.NameToLayer("SlowZone");
-        deathLayer  = LayerMask.NameToLayer("DeathZone");
-    }
-
-    void Start()
-    {
         currentSpeed = speed;
         randomTimer = Random.Range(0.5f, 1.5f);
     }
 
     void Update()
     {
-        if (state != BotState.Running) return;
-        if (finishPoint == null) return;
+        if (state != BotState.Running || finishPoint == null) return;
 
         CheckFinish();
         MoveToFinish();
         ApplyGravity();
     }
 
-    // =============================
-    // FINISH CHECK
-    // =============================
     void CheckFinish()
     {
         if (Vector3.Distance(transform.position, finishPoint.position) < 0.5f)
@@ -80,14 +62,12 @@ public class BotNav : MonoBehaviour
         }
     }
 
-    // =============================
-    // MAIN MOVEMENT
-    // =============================
     void MoveToFinish()
     {
         Vector3 dir = (finishPoint.position - transform.position).normalized;
         dir.y = 0;
 
+        // Slight random left-right movement for uniqueness
         randomTimer -= Time.deltaTime;
         if (randomTimer <= 0)
         {
@@ -108,9 +88,6 @@ public class BotNav : MonoBehaviour
             transform.forward = Vector3.Lerp(transform.forward, move, Time.deltaTime * 5f);
     }
 
-    // =============================
-    // GROUND / EDGE CHECK
-    // =============================
     void HandleGroundCheck(Vector3 move)
     {
         if (!controller.isGrounded) return;
@@ -137,6 +114,12 @@ public class BotNav : MonoBehaviour
     {
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
+
+        // Optional: respawn if fall below certain height
+        if (transform.position.y < 0f)
+        {
+            Die();
+        }
     }
 
     bool HasGround(Vector3 pos)
@@ -156,40 +139,83 @@ public class BotNav : MonoBehaviour
         transform.rotation = Quaternion.Lerp(transform.rotation, target, Time.deltaTime * 6f);
     }
 
-    // =============================
-    // COLLISION
-    // =============================
+    // =====================
+    // COLLISIONS
+    // =====================
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
-        int layer = hit.gameObject.layer;
+        string tag = hit.gameObject.tag;
 
-        if (layer == slowLayer)
-            isInSlowZone = true;
-
-        if (layer == deathLayer)
-            Die();
+        switch (tag)
+        {
+            case "SlowZone":
+                isInSlowZone = true;
+                currentCheckpoint = Checkpoint.BOTQOQ1;
+                break;
+            case "Botqoq2":
+                isInSlowZone = true;
+                currentCheckpoint = Checkpoint.BOTQOQ2;
+                break;
+            case "Tunel1":
+                currentCheckpoint = Checkpoint.TUNEL1;
+                break;
+            case "Tunel2":
+                currentCheckpoint = Checkpoint.TUNEL2;
+                break;
+            case "Barrier":
+                currentCheckpoint = Checkpoint.BARRIER;
+                break;
+            case "DeathZone":
+                Die();
+                break;
+        }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.gameObject.layer == slowLayer)
+        if (other.CompareTag("SlowZone") || other.CompareTag("Botqoq2"))
             isInSlowZone = false;
     }
 
     void Die()
     {
+        if (state == BotState.Dead) return;
+
         state = BotState.Dead;
         controller.enabled = false;
-
-        Invoke(nameof(Respawn), 1.2f);
+        Invoke(nameof(Respawn), 1f);
     }
 
     void Respawn()
     {
-        transform.position = spawnPoint.position;
+        Vector3 respawnPos = spawnPoint.position;
+
+        switch (currentCheckpoint)
+        {
+            case Checkpoint.START:
+		Debug.Log("this is start: " + Checkpoint.START);
+                respawnPos = spawnPoint.position;
+                break;
+            case Checkpoint.BOTQOQ1:
+                respawnPos = new Vector3(251.24f, 10.5f, 0f);
+                break;
+            case Checkpoint.TUNEL1:
+                respawnPos = new Vector3(250.57f, 10.5f, -135.6f);
+                break;
+            case Checkpoint.TUNEL2:
+                respawnPos = new Vector3(250.42f, 10.5f, -160.83f);
+                break;
+            case Checkpoint.BOTQOQ2:
+                respawnPos = new Vector3(248.89f, 10.49f, -188.6f);
+                break;
+            case Checkpoint.BARRIER:
+                respawnPos = new Vector3(245.8f, 15.58f, -235.27f);
+                break;
+        }
+
+        transform.position = respawnPos;
         velocity = Vector3.zero;
         controller.enabled = true;
         state = BotState.Running;
     }
-}
-
+};
