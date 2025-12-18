@@ -1,0 +1,200 @@
+using UnityEngine;
+
+[RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(Animator))]
+public class PlayerMovement : MonoBehaviour
+{
+    [Header("Movement")]
+    public float moveSpeed = 5f;
+    public float slowSpeed = 2f;
+    public float rotationSpeed = 10f;
+
+    [Header("Jump & Gravity")]
+    public float jumpHeight = 1.2f;
+    public float gravity = -9.81f;
+
+    [Header("Finish")]
+    public Transform finishGameObject;
+    public float finishDistance = 1.5f;
+
+    private CharacterController controller;
+    private Animator anim;
+
+    private Vector3 velocity;
+    private bool isGrounded;
+    private bool isInSlowZone;
+    private bool isGameOver;
+    private bool isFinish;
+
+    private float currentSpeed;
+
+    // ===== CHECKPOINT ENUM =====
+    private enum Checkpoint
+    {
+        START,
+        BOTQOQ1,
+        TUNEL1,
+        TUNEL2,
+        BOTQOQ2,
+        BARRIER
+    }
+
+    private Checkpoint currentCheckpoint = Checkpoint.START;
+
+    void Start()
+    {
+        controller = GetComponent<CharacterController>();
+        anim = GetComponentInChildren<Animator>();
+
+        currentSpeed = moveSpeed;
+        velocity.y = -2f;
+    }
+
+    void Update()
+    {
+        if (isFinish) return;
+
+        // ===== FINISH =====
+        if (finishGameObject)
+        {
+            float dist = Vector3.Distance(transform.position, finishGameObject.position);
+            if (dist <= finishDistance)
+            {
+                isFinish = true;
+                Debug.Log("🎉 YOU WIN");
+                return;
+            }
+        }
+
+        // ===== GROUND =====
+        isGrounded = controller.isGrounded;
+        anim.SetBool("isGrounded", isGrounded);
+	Debug.Log("CHANGED ISGROUNDED: " + isGrounded);
+
+        if (isGrounded && velocity.y < 0)
+            velocity.y = -5f;
+
+        // ===== INPUT =====
+        float x = Input.GetAxis("Horizontal");
+        float z = Input.GetAxis("Vertical");
+
+        Vector3 inputDir = new Vector3(-x, 0, -z);
+        anim.SetFloat("speed", Mathf.Clamp01(inputDir.magnitude));
+
+	Debug.Log("our current speed: ", Mathf.Clamp01(inputDir.magnitude));
+
+        Vector3 move = Vector3.zero;
+
+        if (inputDir.magnitude > 0.1f)
+        {
+            inputDir.Normalize();
+
+            Quaternion rot = Quaternion.LookRotation(inputDir);
+            transform.rotation = Quaternion.Slerp(transform.rotation, rot, rotationSpeed * Time.deltaTime);
+
+            move = transform.forward * currentSpeed;
+        }
+
+        // ===== JUMP =====
+        if (Input.GetButtonDown("Jump") && isGrounded)
+        {
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            anim.SetTrigger("Jump");
+        }
+
+        // ===== GRAVITY =====
+        velocity.y += gravity * Time.deltaTime;
+
+        controller.Move((move + velocity) * Time.deltaTime);
+
+        // ===== SPEED =====
+        currentSpeed = isInSlowZone ? slowSpeed : moveSpeed;
+
+        // ===== FALL =====
+        if (transform.position.y <= 4f)
+        {
+            isGameOver = true;
+            Respawn();
+        }
+    }
+
+    // ===== TRIGGER ENTER =====
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("SlowZone"))
+        {
+            isInSlowZone = true;
+            currentCheckpoint = Checkpoint.BOTQOQ1;
+        }
+
+        if (other.CompareTag("Botqoq2"))
+        {
+            isInSlowZone = true;
+            currentCheckpoint = Checkpoint.BOTQOQ2;
+        }
+
+        if (other.CompareTag("Tunel1"))
+            currentCheckpoint = Checkpoint.TUNEL1;
+
+        if (other.CompareTag("Tunel2"))
+            currentCheckpoint = Checkpoint.TUNEL2;
+
+        if (other.CompareTag("Barrier"))
+            currentCheckpoint = Checkpoint.BARRIER;
+
+        if (other.CompareTag("DeathZone"))
+        {
+            Debug.Log("GAME OVER");
+            isGameOver = true;
+            Respawn();
+        }
+    }
+
+    // ===== TRIGGER EXIT (MUHIM) =====
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("SlowZone") || other.CompareTag("Botqoq2"))
+        {
+            isInSlowZone = false;
+        }
+    }
+
+    // ===== RESPAWN =====
+    private void Respawn()
+    {
+        if (!isGameOver) return;
+
+        controller.enabled = false;
+
+        switch (currentCheckpoint)
+        {
+            case Checkpoint.START:
+                transform.position = new Vector3(251.5f, 10.4f, -117.3f);
+                break;
+
+            case Checkpoint.BOTQOQ1:
+                transform.position = new Vector3(251.24f, 10.5f, 0f);
+                break;
+
+            case Checkpoint.TUNEL1:
+                transform.position = new Vector3(250.57f, 10.5f, -135.6f);
+                break;
+
+            case Checkpoint.TUNEL2:
+                transform.position = new Vector3(250.42f, 10.5f, -160.83f);
+                break;
+
+            case Checkpoint.BOTQOQ2:
+                transform.position = new Vector3(248.89f, 10.49f, -188.6f);
+                break;
+
+            case Checkpoint.BARRIER:
+                transform.position = new Vector3(245.8f, 15.58f, -235.27f);
+                break;
+        }
+
+        controller.enabled = true;
+        velocity = Vector3.zero;
+        isGameOver = false;
+    }
+}
