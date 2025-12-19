@@ -7,37 +7,37 @@ Ushbu loyihaning barcha vizual elementlari **noldan ishlab chiqilgan** bo‘lib,
 ## 🛠 Ishlatilgan dasturlar
 
 - **Blender**  
-  Modellashtirish, personaj dizayni va sahna (environment) konstruksiyasi.
+  Modellashtirish, personaj dizayni va sahna (environment) konstruksiyasi
 
 - **Substance Painter**  
-  Teksturalash va materiallar bilan ishlash.
+  Teksturalash va materiallar bilan ishlash
 
 ---
 
 ## 👤 Personaj dizayni (Character)
 
-- **Modellashtirish:**  
+- **Modellashtirish**  
   Personaj Blender’da **Low-poly** uslubida tayyorlangan. Bu yondashuv o‘yinning yuqori unumdorlikda (performance) ishlashini ta’minlaydi.
 
-- **Teksturalash:**  
+- **Teksturalash**  
   Personaj teksturalari **1024×1024 (1K)** o‘lchamda eksport qilingan. Ushbu yechim sifat va optimizatsiya o‘rtasida optimal muvozanatni saqlashga xizmat qiladi.
 
 ---
 
 ## 🌲 Atrof-muhit (Environment)
 
-- **Modellashtirish:**  
+- **Modellashtirish**  
   Xarita elementlari — botqoqlik, ko‘l, toshlar va boshqa obyektlar **Blender** dasturida individual ravishda modellashtirilgan.
 
-- **Materiallar:**  
+- **Materiallar**  
   Barcha environment assetlari **Substance Painter** orqali o‘ziga xos materiallar bilan boyitilgan.
 
-- **Texnik ko‘rsatkichlar:**  
+- **Texnik ko‘rsatkichlar**  
   Atrof-muhit assetlari uchun ham **1K tekstura hajmi** tanlangan. Bu o‘yinning mobil qurilmalar va past quvvatli tizimlarda ham silliq ishlashini kafolatlaydi.
 
 ---
 
-## ⚙️ Optimizatsiya
+## ⚙️ Optimizatsiya (Graphics)
 
 - Barcha modellar **Unity** o‘yin dvigateli uchun optimallashtirilgan  
 - Mesh’lar keraksiz polygonlardan tozalangan  
@@ -45,101 +45,106 @@ Ushbu loyihaning barcha vizual elementlari **noldan ishlab chiqilgan** bo‘lib,
 
 Bu yondashuv o‘yinning barqaror ishlashi va yuqori FPS ko‘rsatkichlarini ta’minlaydi.
 
+---
 
-🕹 Gameplay Mechanics
+## 🕹 Gameplay Mechanics
 
-Character Controller System
-O‘yinchi harakati Unity’ning CharacterController komponenti asosida amalga oshirilgan.
-Qo‘llab-quvvatlanadigan harakatlar:
+### Character Controller System
 
-Yurish
+O‘yinchi harakati Unity’ning **CharacterController** komponenti asosida amalga oshirilgan.
 
-Yugurish
+**Qo‘llab-quvvatlanadigan harakatlar:**
 
-Sakrash
+- Yurish  
+- Yugurish  
+- Sakrash  
+- Gravitatsiya bilan ishlash  
+- Silliq burilish (rotation)
 
-Gravitatsiya bilan ishlash
+### Input System
 
-Silliq burilish (rotation)
+O‘yin input’lari Unity’ning standart input mexanizmlari orqali boshqariladi va **mobil hamda PC** qurilmalarga moslashtirilgan.
 
-Input System
-O‘yin input’lari Unity’ning standart input mexanizmlari orqali boshqariladi va mobil hamda PC qurilmalarga moslashtirilgan.
+---
 
-🎭 Animation System
+## 🎭 Animation System
 
-Personaj animatsiyalari Unity Animator orqali boshqariladi
+Personaj animatsiyalari **Unity Animator** orqali boshqariladi.
 
-Mavjud animatsiya holatlari:
+**Mavjud animatsiya holatlari:**
 
-Idle
+- Idle  
+- Run  
+- Jump  
 
-Run
+Animatsiya transition’lari **Animator State Machine** orqali silliq va optimallashtirilgan holda ishlaydi.
 
-Jump
+---
 
-Animation transition’lar Animator State Machine orqali silliq va optimallashtirilgan holda ishlaydi
+## ⏱ Game Logic & Flow
 
-⏱ Game Logic & Flow
+### Timer System
 
-Timer System
-O‘yinda 1 daqiqadan 0 gacha sanovchi countdown timer mavjud.
+O‘yinda **1 daqiqadan 0 gacha** sanovchi countdown timer mavjud.
 
-Lose Condition
+### Lose Condition
+
 Agar o‘yinchi belgilangan vaqt ichida finish nuqtasiga yetib bormasa:
 
-O‘yin Game Over holatiga o‘tadi
+- O‘yin **Game Over** holatiga o‘tadi
 
-Win Condition
+### Win Condition
+
 O‘yinchi finish nuqtasiga yetib borganda:
 
-O‘yin muvaffaqiyatli yakunlanadi
+- O‘yin **muvaffaqiyatli yakunlanadi**
 
-🧩 Level & Scene Setup
+---
 
-Sahna (scene) modular uslubda tashkil qilingan
+## 🧩 Level & Scene Setup
 
-Barcha obstacle va environment elementlar:
+Sahna (scene) **modular** uslubda tashkil qilingan.
 
-Alohida prefab sifatida yaratilgan
+**Barcha obstacle va environment elementlar:**
 
-Qayta foydalanish (reusability) uchun moslashtirilgan
+- Alohida **prefab** sifatida yaratilgan  
+- Qayta foydalanish (**reusability**) uchun moslashtirilgan  
 
-Bu yondashuv yangi level qo‘shishni va mavjud sahnani kengaytirishni osonlashtiradi
+Bu yondashuv yangi level qo‘shishni va mavjud sahnani kengaytirishni osonlashtiradi.
 
-🔊 Audio System
+---
 
-O‘yinga background music qo‘shilgan
+## 🔊 Audio System
 
-Audio xususiyatlari:
+O‘yinga **background music** qo‘shilgan.
 
-MP3 format
+**Audio xususiyatlari:**
 
-Loop qilinadigan tarzda sozlangan
+- MP3 format  
+- Loop qilinadigan tarzda sozlangan  
+- Ovoz darajasi gameplay jarayoniga mos ravishda balanslangan  
 
-Ovoz darajasi gameplay jarayoniga mos ravishda balanslangan
+---
 
-⚡ Optimization & Performance
+## ⚡ Optimization & Performance
 
-Barcha skriptlar Unity uchun optimallashtirilgan
+- Barcha skriptlar **Unity** uchun optimallashtirilgan  
+- Keraksiz `Update()` chaqiruvlari minimallashtirilgan  
+- Physics hisob-kitoblari faqat zarur joylarda ishlatiladi  
 
-Keraksiz Update() chaqiruvlari minimallashtirilgan
+**Natijada:**
 
-Physics hisob-kitoblari faqat zarur joylarda ishlatiladi
+- Barqaror FPS  
+- Past resurs sarfi  
+- Mobil qurilmalar uchun qulay ishlash  
 
-Natijada:
+---
 
-Barqaror FPS
-
-Past resurs sarfi
-
-Mobil qurilmalar uchun qulay ishlash ta’minlangan
-
-📦 Build & Platform Support
+## 📦 Build & Platform Support
 
 O‘yin quyidagi platformalar uchun moslashtirilgan:
 
-PC
+- PC  
+- Mobile (**Android / iOS**)  
 
-Mobile (Android / iOS)
-
-Resolution va aspect ratio avtomatik tarzda moslashadi
+Resolution va aspect ratio **avtomatik tarzda moslashadi**.
