@@ -5,7 +5,7 @@ public class Barrier : MonoBehaviour
     [Header("Movement Settings")]
     public Vector3 moveDirection = Vector3.down;  
     public float moveDistance = 3f;             
-    public float moveSpeed = 2f;              
+    public float moveSpeed = 1.5f;              
     public float startDelay = 0f; 
 
     private Vector3 startPos;

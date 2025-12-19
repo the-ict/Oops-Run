@@ -4,218 +4,208 @@ using UnityEngine;
 [RequireComponent(typeof(Animator))]
 public class BotNav : MonoBehaviour
 {
-    [Header("Target & Spawn")]
-    public Transform finishPoint;
-    public Transform spawnPoint;
+    [Header("Target")]
+    public Transform finishGameObject;
 
     [Header("Movement")]
-    public float speed = 5f;
-    public float jumpForce = 7f;
-    public float gravity = -20f;
-    public float groundCheckDistance = 1.5f;
-    public float sideOffset = 0.7f;
+    public float moveSpeed = 5f;
+    public float slowSpeed = 2f;
+    public float rotationSpeed = 10f;
 
-    [Header("Slow")]
-    public float slowMultiplier = 0.5f;
+    [Header("Jump & Gravity")]
+    public float jumpHeight = 1.2f;
+    public float gravity = -9.81f;
+
+    [Header("AI Settings")]
+    public float groundCheckDistance = 1.5f;
+    public float sideCheckOffset = 0.8f;
+    public float obstacleCheckDistance = 1.2f;
+    public float waitBarrierTime = 0.8f;
 
     private CharacterController controller;
-    private Animator animator;
+    private Animator anim;
     private Vector3 velocity;
-    private float currentSpeed;
-    private float randomTimer;
-    private float horizontalMove;
+
+    private bool isGrounded;
     private bool isInSlowZone;
+    private bool isFinish;
 
-    private enum BotState { Running, Finished, Dead }
-    private BotState state = BotState.Running;
+    private float currentSpeed;
+    private float barrierWaitTimer;
 
+    // ===== CHECKPOINT SYSTEM =====
     private enum Checkpoint
     {
-        START, BOTQOQ1, TUNEL1, TUNEL2, BOTQOQ2, BARRIER
+        START,
+        BOTQOQ1,
+        TUNEL1,
+        TUNEL2,
+        BOTQOQ2,
+        BARRIER
     }
+
     private Checkpoint currentCheckpoint = Checkpoint.START;
 
-    void Awake()
+    void Start()
     {
         controller = GetComponent<CharacterController>();
-        animator = GetComponent<Animator>();
-        currentSpeed = speed;
-        randomTimer = Random.Range(0.5f, 1.5f);
+        anim = GetComponent<Animator>();
+        currentSpeed = moveSpeed;
+        velocity.y = -2f;
     }
 
     void Update()
     {
-        if (state != BotState.Running || finishPoint == null) return;
+        if (isFinish) return;
 
-        CheckFinish();
-        MoveToFinish();
-        ApplyGravity();
-    }
-
-    void CheckFinish()
-    {
-        if (Vector3.Distance(transform.position, finishPoint.position) < 0.5f)
+        // ===== FINISH =====
+        if (finishGameObject &&
+            Vector3.Distance(transform.position, finishGameObject.position) < 1.5f)
         {
-            state = BotState.Finished;
-            controller.enabled = false;
-            animator.Play("Dancing");
-        }
-    }
-
-    void MoveToFinish()
-    {
-        Vector3 dir = (finishPoint.position - transform.position).normalized;
-        dir.y = 0;
-
-        // Slight random left-right movement for uniqueness
-        randomTimer -= Time.deltaTime;
-        if (randomTimer <= 0)
-        {
-            horizontalMove = Random.Range(-0.8f, 0.8f);
-            randomTimer = Random.Range(0.5f, 1.5f);
+            isFinish = true;
+            anim.Play("Dancing");
+            return;
         }
 
-        Vector3 move = (dir + transform.right * horizontalMove).normalized;
+        // ===== GROUND =====
+        isGrounded = controller.isGrounded;
+        anim.SetBool("isGrounded", isGrounded);
 
-        HandleGroundCheck(move);
+        if (isGrounded && velocity.y < 0)
+            velocity.y = -5f;
 
-        currentSpeed = isInSlowZone ? speed * slowMultiplier : speed;
+        Vector3 aiDir = GetAIDirection();
 
-        controller.Move(move * currentSpeed * Time.deltaTime);
-        animator.SetFloat("speed", currentSpeed);
+        // ===== MOVE =====
+        anim.SetFloat("speed", aiDir.magnitude);
 
-        if (move.magnitude > 0.1f)
-            transform.forward = Vector3.Lerp(transform.forward, move, Time.deltaTime * 5f);
-    }
-
-    void HandleGroundCheck(Vector3 move)
-    {
-        if (!controller.isGrounded) return;
-
-        velocity.y = -2f;
-        animator.SetBool("isGrounded", true);
-
-        Vector3 forwardPos = transform.position + Vector3.up * 0.5f + transform.forward * 0.5f;
-        if (!HasGround(forwardPos))
+        if (aiDir.magnitude > 0.1f)
         {
-            Vector3 leftPos = transform.position + Vector3.up * 0.5f - transform.right * sideOffset;
-            Vector3 rightPos = transform.position + Vector3.up * 0.5f + transform.right * sideOffset;
-
-            bool left = HasGround(leftPos);
-            bool right = HasGround(rightPos);
-
-            if (left && !right) RotateSmooth(-90);
-            else if (right && !left) RotateSmooth(90);
-            else Jump();
+            Quaternion rot = Quaternion.LookRotation(aiDir);
+            transform.rotation = Quaternion.Slerp(transform.rotation, rot, rotationSpeed * Time.deltaTime);
         }
-    }
 
-    void ApplyGravity()
-    {
+        Vector3 move = transform.forward * currentSpeed;
+
+        // ===== GRAVITY =====
         velocity.y += gravity * Time.deltaTime;
-        controller.Move(velocity * Time.deltaTime);
+        controller.Move((move + velocity) * Time.deltaTime);
 
-        // Optional: respawn if fall below certain height
-        if (transform.position.y < 0f)
+        // ===== SPEED =====
+        currentSpeed = isInSlowZone ? slowSpeed : moveSpeed;
+        isInSlowZone = false;
+    }
+
+    // ================= AI BRAIN =================
+    Vector3 GetAIDirection()
+    {
+        Vector3 dir = (finishGameObject.position - transform.position);
+        dir.y = 0;
+        dir.Normalize();
+
+        // ===== 1. JARLIK CHECK =====
+        if (isGrounded && !HasGround(transform.position + transform.forward * sideCheckOffset))
         {
-            Die();
+            bool left = HasGround(transform.position - transform.right * sideCheckOffset);
+            bool right = HasGround(transform.position + transform.right * sideCheckOffset);
+
+            if (left) return -transform.right;
+            if (right) return transform.right;
+
+            Jump(); // risk
         }
+
+        // ===== 2. BARRIER CHECK =====
+        if (Physics.Raycast(transform.position + Vector3.up * 0.5f,
+                            transform.forward,
+                            out RaycastHit hit,
+                            obstacleCheckDistance))
+        {
+            if (hit.collider.CompareTag("Barrier"))
+            {
+                barrierWaitTimer += Time.deltaTime;
+                if (barrierWaitTimer < waitBarrierTime)
+                    return Vector3.zero; // kutadi
+                else
+                    barrierWaitTimer = 0f;
+            }
+
+            if (isGrounded)
+                Jump();
+        }
+
+        return dir;
     }
 
     bool HasGround(Vector3 pos)
     {
-        return Physics.Raycast(pos, Vector3.down, groundCheckDistance, LayerMask.GetMask("Ground"));
+        return Physics.Raycast(pos + Vector3.up * 0.5f,
+                               Vector3.down,
+                               groundCheckDistance);
     }
 
     void Jump()
     {
-        velocity.y = jumpForce;
-        animator.SetTrigger("Jump");
+        velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+        anim.SetTrigger("Jump");
     }
 
-    void RotateSmooth(float angle)
-    {
-        Quaternion target = Quaternion.Euler(0, transform.eulerAngles.y + angle, 0);
-        transform.rotation = Quaternion.Lerp(transform.rotation, target, Time.deltaTime * 6f);
-    }
-
-    // =====================
-    // COLLISIONS
-    // =====================
+    // ================= COLLISIONS =================
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
-        string tag = hit.gameObject.tag;
-
-        switch (tag)
+        if (hit.gameObject.CompareTag("SlowZone"))
         {
-            case "SlowZone":
-                isInSlowZone = true;
-                currentCheckpoint = Checkpoint.BOTQOQ1;
-                break;
-            case "Botqoq2":
-                isInSlowZone = true;
-                currentCheckpoint = Checkpoint.BOTQOQ2;
-                break;
-            case "Tunel1":
-                currentCheckpoint = Checkpoint.TUNEL1;
-                break;
-            case "Tunel2":
-                currentCheckpoint = Checkpoint.TUNEL2;
-                break;
-            case "Barrier":
-                currentCheckpoint = Checkpoint.BARRIER;
-                break;
-            case "DeathZone":
-                Die();
-                break;
+            isInSlowZone = true;
+            currentCheckpoint = Checkpoint.BOTQOQ1;
         }
+
+        if (hit.gameObject.CompareTag("Tunel1"))
+            currentCheckpoint = Checkpoint.TUNEL1;
+
+        if (hit.gameObject.CompareTag("Tunel2"))
+            currentCheckpoint = Checkpoint.TUNEL2;
+
+        if (hit.gameObject.CompareTag("Botqoq2"))
+        {
+            isInSlowZone = true;
+            currentCheckpoint = Checkpoint.BOTQOQ2;
+        }
+
+        if (hit.gameObject.CompareTag("Barrier"))
+            currentCheckpoint = Checkpoint.BARRIER;
+
+        if (hit.gameObject.CompareTag("DeathZone"))
+            Respawn();
     }
 
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag("SlowZone") || other.CompareTag("Botqoq2"))
-            isInSlowZone = false;
-    }
-
-    void Die()
-    {
-        if (state == BotState.Dead) return;
-
-        state = BotState.Dead;
-        controller.enabled = false;
-        Invoke(nameof(Respawn), 1f);
-    }
-
+    // ================= RESPAWN =================
     void Respawn()
     {
-        Vector3 respawnPos = spawnPoint.position;
+        controller.enabled = false;
 
         switch (currentCheckpoint)
         {
             case Checkpoint.START:
-		Debug.Log("this is start: " + Checkpoint.START);
-                respawnPos = spawnPoint.position;
+                transform.position = new Vector3(251.5f, 10.4f, -117.3f);
                 break;
             case Checkpoint.BOTQOQ1:
-                respawnPos = new Vector3(251.24f, 10.5f, 0f);
+                transform.position = new Vector3(251.24f, 10.5f, 0f);
                 break;
             case Checkpoint.TUNEL1:
-                respawnPos = new Vector3(250.57f, 10.5f, -135.6f);
+                transform.position = new Vector3(250.57f, 10.5f, -135.6f);
                 break;
             case Checkpoint.TUNEL2:
-                respawnPos = new Vector3(250.42f, 10.5f, -160.83f);
+                transform.position = new Vector3(250.42f, 10.5f, -160.83f);
                 break;
             case Checkpoint.BOTQOQ2:
-                respawnPos = new Vector3(248.89f, 10.49f, -188.6f);
+                transform.position = new Vector3(248.89f, 10.49f, -188.6f);
                 break;
             case Checkpoint.BARRIER:
-                respawnPos = new Vector3(245.8f, 15.58f, -235.27f);
+                transform.position = new Vector3(245.8f, 15.58f, -235.27f);
                 break;
         }
 
-        transform.position = respawnPos;
-        velocity = Vector3.zero;
         controller.enabled = true;
-        state = BotState.Running;
+        velocity = Vector3.zero;
     }
-};
+}

@@ -7,7 +7,7 @@ public class PlayerMovement : MonoBehaviour
     [Header("Movement")]
     public float moveSpeed = 5f;
     public float slowSpeed = 2f;
-    public float rotationSpeed = 10f;
+    public float rotationSpeed = 5f;
 
     [Header("Jump & Gravity")]
     public float jumpHeight = 1.2f;
@@ -15,11 +15,11 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Finish")]
     public Transform finishGameObject;
-    public float finishDistance = 1.5f;
+    public float finishDistance = 10f;
 
     private CharacterController controller;
     private Animator anim;
-
+    public FloatingJoystick joystick;
     private Vector3 velocity;
     private bool isGrounded;
     private bool isInSlowZone;
@@ -37,7 +37,7 @@ public class PlayerMovement : MonoBehaviour
         TUNEL2,
         BOTQOQ2,
         BARRIER
-    }
+    };
 
     private Checkpoint currentCheckpoint = Checkpoint.START;
 
@@ -53,8 +53,8 @@ public class PlayerMovement : MonoBehaviour
     {
         if (isFinish && !finishShown) {
        	   ShowFinishUi();
-	   finishShown = true;
-  	};
+	       finishShown = true;
+  	    };
 
         // ===== FINISH =====
         if (finishGameObject)
@@ -75,8 +75,8 @@ public class PlayerMovement : MonoBehaviour
             velocity.y = -5f;
 
         // ===== INPUT =====
-        float x = Input.GetAxis("Horizontal");
-        float z = Input.GetAxis("Vertical");
+        float x = joystick.Horizontal;
+        float z = joystick.Vertical;
 
         Vector3 inputDir = new Vector3(-x, 0, -z);
         anim.SetFloat("speed", Mathf.Clamp01(inputDir.magnitude));
@@ -182,7 +182,14 @@ public class PlayerMovement : MonoBehaviour
     }
 
     void ShowFinishUi() {
-	FinishObject.SetActive(true);
-	Time.timeScale = 0f;	
+        FinishObject.SetActive(true);
+        Time.timeScale = 0f;	
+    }
+    
+    public void Jump() {
+        if(!isGrounded) return; 
+
+        velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+        anim.SetTrigger("Jump");
     }
 }
