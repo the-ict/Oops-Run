@@ -147,7 +147,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: b2df8fc41a75a42db92a1fb6dd5597c6, type: 3}
+  m_Resource: {fileID: 8300000, guid: 6693ade8616ff49bb848efe6ed042e05, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 1
   m_Pitch: 1
@@ -626,13 +626,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 143982977}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.0011704891, y: 0.9661489, z: -0.2579451, w: -0.0043841377}
+  m_LocalRotation: {x: -0.0015806013, y: 0.9373636, z: -0.34832305, w: -0.0042535174}
   m_LocalPosition: {x: 251.84, y: 14.31, z: -114.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 29.897, y: 180.52, z: 0}
+  m_LocalEulerAnglesHint: {x: 40.77, y: 180.52, z: 0}
 --- !u!114 &143982982
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -927,7 +927,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   moveSpeed: 5
   slowSpeed: 2
-  rotationSpeed: 10
+  rotationSpeed: 5
   jumpHeight: 1
   gravity: -9.81
   finishGameObject: {fileID: 1468742882}
@@ -1784,11 +1784,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8170153791668043268, guid: 0d230cc8be529a542a08cb878ab14b18, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 150
+      value: 300
       objectReference: {fileID: 0}
     - target: {fileID: 8170153791668043268, guid: 0d230cc8be529a542a08cb878ab14b18, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 150
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8170153791668043268, guid: 0d230cc8be529a542a08cb878ab14b18, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -3511,7 +3511,7 @@ RectTransform:
   m_GameObject: {fileID: 2080559895}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 3, y: 3, z: 3}
+  m_LocalScale: {x: 5, y: 5, z: 5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 415380252}
