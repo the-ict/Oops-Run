@@ -45,3 +45,101 @@ Ushbu loyihaning barcha vizual elementlari **noldan ishlab chiqilgan** bo‘lib,
 
 Bu yondashuv o‘yinning barqaror ishlashi va yuqori FPS ko‘rsatkichlarini ta’minlaydi.
 
+
+🕹 Gameplay Mechanics
+
+Character Controller System
+O‘yinchi harakati Unity’ning CharacterController komponenti asosida amalga oshirilgan.
+Qo‘llab-quvvatlanadigan harakatlar:
+
+Yurish
+
+Yugurish
+
+Sakrash
+
+Gravitatsiya bilan ishlash
+
+Silliq burilish (rotation)
+
+Input System
+O‘yin input’lari Unity’ning standart input mexanizmlari orqali boshqariladi va mobil hamda PC qurilmalarga moslashtirilgan.
+
+🎭 Animation System
+
+Personaj animatsiyalari Unity Animator orqali boshqariladi
+
+Mavjud animatsiya holatlari:
+
+Idle
+
+Run
+
+Jump
+
+Animation transition’lar Animator State Machine orqali silliq va optimallashtirilgan holda ishlaydi
+
+⏱ Game Logic & Flow
+
+Timer System
+O‘yinda 1 daqiqadan 0 gacha sanovchi countdown timer mavjud.
+
+Lose Condition
+Agar o‘yinchi belgilangan vaqt ichida finish nuqtasiga yetib bormasa:
+
+O‘yin Game Over holatiga o‘tadi
+
+Win Condition
+O‘yinchi finish nuqtasiga yetib borganda:
+
+O‘yin muvaffaqiyatli yakunlanadi
+
+🧩 Level & Scene Setup
+
+Sahna (scene) modular uslubda tashkil qilingan
+
+Barcha obstacle va environment elementlar:
+
+Alohida prefab sifatida yaratilgan
+
+Qayta foydalanish (reusability) uchun moslashtirilgan
+
+Bu yondashuv yangi level qo‘shishni va mavjud sahnani kengaytirishni osonlashtiradi
+
+🔊 Audio System
+
+O‘yinga background music qo‘shilgan
+
+Audio xususiyatlari:
+
+MP3 format
+
+Loop qilinadigan tarzda sozlangan
+
+Ovoz darajasi gameplay jarayoniga mos ravishda balanslangan
+
+⚡ Optimization & Performance
+
+Barcha skriptlar Unity uchun optimallashtirilgan
+
+Keraksiz Update() chaqiruvlari minimallashtirilgan
+
+Physics hisob-kitoblari faqat zarur joylarda ishlatiladi
+
+Natijada:
+
+Barqaror FPS
+
+Past resurs sarfi
+
+Mobil qurilmalar uchun qulay ishlash ta’minlangan
+
+📦 Build & Platform Support
+
+O‘yin quyidagi platformalar uchun moslashtirilgan:
+
+PC
+
+Mobile (Android / iOS)
+
+Resolution va aspect ratio avtomatik tarzda moslashadi
